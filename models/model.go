@@ -23,8 +23,8 @@ type Vendor struct {
 	Token           string         `json:"token"`
 	District        pq.StringArray `json:"district"`
 	Panchayat       pq.StringArray `json:"panchayat"`
-	Services        string         `json:"services"`
-	ServiceCategory string         `json:"service_category"`
+	Services        pq.StringArray `json:"services"`
+	ServiceCategory pq.StringArray `json:"service_category"`
 	Experience      string         `json:"experience"`
 	Reference       string         `json:"reference"`
 	Premium         string         `json:"premium"`
