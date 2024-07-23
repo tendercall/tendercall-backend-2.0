@@ -31,8 +31,8 @@ type Vendor struct {
 	ProfileImage    string         `json:"profile_image"`
 	PlanPurchase    string         `json:"plan_purchase"`
 	Image           string         `json:"image"`
-	ImageView       string         `json:"image_view"`
-	Favorites       string         `json:"favorites"`
+	ImageView       pq.StringArray `json:"image_view"`
+	Favorites       pq.StringArray `json:"favorites"`
 	CreatedAt       string         `json:"created_at"`
 	Latitude        string         `json:"latitude"`
 	Longitude       string         `json:"longitude"`

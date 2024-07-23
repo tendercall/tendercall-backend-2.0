@@ -74,8 +74,8 @@ func CreateVendor(DB *sql.DB) http.HandlerFunc {
 			Reference:       r.FormValue("reference"),
 			Premium:         r.FormValue("premium"),
 			PlanPurchase:    r.FormValue("plan_purchase"),
-			ImageView:       r.FormValue("image_view"),
-			Favorites:       r.FormValue("favorites"),
+			ImageView:       pq.StringArray(r.Form["image_view"]),
+			Favorites:       pq.StringArray(r.Form["favorites"]),
 			CreatedAt:       r.FormValue("created_at"),
 			Latitude:        r.FormValue("latitude"),
 			Longitude:       r.FormValue("longitude"),
@@ -213,7 +213,7 @@ func CreateVendor(DB *sql.DB) http.HandlerFunc {
 		vendor.Image = imageURL
 
 		// Insert vendor details into database with image URLs
-		_, err = DB.Exec("INSERT INTO vendors (id, name, business_name, business_address, phone_number, unique_id, token, district, panchayat, services, service_category, experience, reference, premium, profile_image, plan_purchase, image, image_view, favorites, created_at, latitude, longitude) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)", nextID, vendor.Name, vendor.BusinessName, vendor.BusinessAddress, vendor.PhoneNumber, vendor.UniqueID, vendor.Token, vendor.District, vendor.Panchayat, vendor.Services, vendor.ServiceCategory, vendor.Experience, vendor.Reference, vendor.Premium, vendor.ProfileImage, vendor.PlanPurchase, vendor.Image, pq.Array([]string{vendor.ImageView}), pq.Array([]string{vendor.Favorites}), vendor.CreatedAt, vendor.Latitude, vendor.Longitude)
+		_, err = DB.Exec("INSERT INTO vendors (id, name, business_name, business_address, phone_number, unique_id, token, district, panchayat, services, service_category, experience, reference, premium, profile_image, plan_purchase, image, image_view, favorites, created_at, latitude, longitude) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)", nextID, vendor.Name, vendor.BusinessName, vendor.BusinessAddress, vendor.PhoneNumber, vendor.UniqueID, vendor.Token, vendor.District, vendor.Panchayat, vendor.Services, vendor.ServiceCategory, vendor.Experience, vendor.Reference, vendor.Premium, vendor.ProfileImage, vendor.PlanPurchase, vendor.Image, vendor.ImageView, vendor.Favorites, vendor.CreatedAt, vendor.Latitude, vendor.Longitude)
 		if err != nil {
 			log.Printf("Failed to insert vendor: %v", err)
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
@@ -258,7 +258,7 @@ func GetVendor(DB *sql.DB) http.HandlerFunc {
 		var vendors []models.Vendor
 		for rows.Next() {
 			var vendor models.Vendor
-			err := rows.Scan(&vendor.ID, &vendor.Name, &vendor.BusinessName, &vendor.BusinessAddress, &vendor.PhoneNumber, &vendor.UniqueID, &vendor.Token, (*pq.StringArray)(&vendor.District), (*pq.StringArray)(&vendor.Panchayat), (*pq.StringArray)(&vendor.Services), (*pq.StringArray)(&vendor.ServiceCategory), &vendor.Experience, &vendor.Reference, &vendor.Premium, &vendor.ProfileImage, &vendor.PlanPurchase, &vendor.Image, &vendor.ImageView, &vendor.Favorites, &vendor.CreatedAt, &vendor.Latitude, &vendor.Longitude)
+			err := rows.Scan(&vendor.ID, &vendor.Name, &vendor.BusinessName, &vendor.BusinessAddress, &vendor.PhoneNumber, &vendor.UniqueID, &vendor.Token, (*pq.StringArray)(&vendor.District), (*pq.StringArray)(&vendor.Panchayat), (*pq.StringArray)(&vendor.Services), (*pq.StringArray)(&vendor.ServiceCategory), &vendor.Experience, &vendor.Reference, &vendor.Premium, &vendor.ProfileImage, &vendor.PlanPurchase, &vendor.Image, (*pq.StringArray)(&vendor.ImageView), (*pq.StringArray)(&vendor.Favorites), &vendor.CreatedAt, &vendor.Latitude, &vendor.Longitude)
 			if err != nil {
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 				fmt.Println("Error scanning row:", err)
@@ -330,7 +330,7 @@ func GetVendorByDistrictAndPanchayat(DB *sql.DB) http.HandlerFunc {
 		var vendors []models.Vendor
 		for rows.Next() {
 			var vendor models.Vendor
-			err := rows.Scan(&vendor.ID, &vendor.Name, &vendor.BusinessName, &vendor.BusinessAddress, &vendor.PhoneNumber, &vendor.UniqueID, &vendor.Token, (*pq.StringArray)(&vendor.District), (*pq.StringArray)(&vendor.Panchayat), (*pq.StringArray)(&vendor.Services), (*pq.StringArray)(&vendor.ServiceCategory), &vendor.Experience, &vendor.Reference, &vendor.Premium, &vendor.ProfileImage, &vendor.PlanPurchase, &vendor.Image, &vendor.ImageView, &vendor.Favorites, &vendor.CreatedAt, &vendor.Latitude, &vendor.Longitude)
+			err := rows.Scan(&vendor.ID, &vendor.Name, &vendor.BusinessName, &vendor.BusinessAddress, &vendor.PhoneNumber, &vendor.UniqueID, &vendor.Token, (*pq.StringArray)(&vendor.District), (*pq.StringArray)(&vendor.Panchayat), (*pq.StringArray)(&vendor.Services), (*pq.StringArray)(&vendor.ServiceCategory), &vendor.Experience, &vendor.Reference, &vendor.Premium, &vendor.ProfileImage, &vendor.PlanPurchase, &vendor.Image, (*pq.StringArray)(&vendor.ImageView), (*pq.StringArray)(&vendor.Favorites), &vendor.CreatedAt, &vendor.Latitude, &vendor.Longitude)
 			if err != nil {
 				http.Error(w, fmt.Sprintf(`{"error": "%v"}`, err.Error()), http.StatusInternalServerError)
 				return
@@ -382,7 +382,7 @@ func GetVendorByUniqueId(DB *sql.DB) http.HandlerFunc {
 
 		fmt.Println("Querying the database by vendor uniqueid:", UniqueID)
 		var vendor models.Vendor
-		err := DB.QueryRow("SELECT * FROM vendors WHERE unique_id = $1", UniqueID).Scan(&vendor.ID, &vendor.Name, &vendor.BusinessName, &vendor.BusinessAddress, &vendor.PhoneNumber, &vendor.UniqueID, &vendor.Token, (*pq.StringArray)(&vendor.District), (*pq.StringArray)(&vendor.Panchayat), (*pq.StringArray)(&vendor.Services), (*pq.StringArray)(&vendor.ServiceCategory), &vendor.Experience, &vendor.Reference, &vendor.Premium, &vendor.ProfileImage, &vendor.PlanPurchase, &vendor.Image, &vendor.ImageView, &vendor.Favorites, &vendor.CreatedAt, &vendor.Latitude, &vendor.Longitude)
+		err := DB.QueryRow("SELECT * FROM vendors WHERE unique_id = $1", UniqueID).Scan(&vendor.ID, &vendor.Name, &vendor.BusinessName, &vendor.BusinessAddress, &vendor.PhoneNumber, &vendor.UniqueID, &vendor.Token, (*pq.StringArray)(&vendor.District), (*pq.StringArray)(&vendor.Panchayat), (*pq.StringArray)(&vendor.Services), (*pq.StringArray)(&vendor.ServiceCategory), &vendor.Experience, &vendor.Reference, &vendor.Premium, &vendor.ProfileImage, &vendor.PlanPurchase, &vendor.Image, (*pq.StringArray)(&vendor.ImageView), (*pq.StringArray)(&vendor.Favorites), &vendor.CreatedAt, &vendor.Latitude, &vendor.Longitude)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				http.Error(w, "Vendor not found", http.StatusNotFound)
